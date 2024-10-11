@@ -4,8 +4,6 @@ import { fetchPredictions, getH2H as fetchH2H } from '../db.js';
 const predictions = await fetchPredictions();
 const leagues = [...new Set(predictions.map(p => p.league_name))];
 
-console.log(predictions);
-
 async function getH2H(fixtureId) {
   return await fetchH2H(fixtureId);
 }
@@ -17,340 +15,461 @@ async function getH2H(fixtureId) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FutureBet: Premier Soccer AI</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&display=swap');
+
     body {
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Roboto', sans-serif;
+      background-color: #0f172a;
+      color: #e2e8f0;
     }
-    .header-gradient {
-      background-image: linear-gradient(to right, #18b6b6, #2b81d1);
-    }
-    .header-bg {
-      background-image: url('/images/soccer-pattern.png');
-      background-size: 50px;
-      background-repeat: repeat;
+    .orbitron {
+      font-family: 'Orbitron', sans-serif;
     }
     .nav-link {
       position: relative;
+      overflow: hidden;
     }
-    .nav-link:after {
+    .nav-link::after {
       content: '';
       position: absolute;
       bottom: 0;
-      left: 0;
-      width: 0;
-      height: 2px;
-      background-color: #18b6b6;
-      transition: width 0.3s ease-in-out;
-    }
-    .nav-link:hover:after {
+      left: -100%;
       width: 100%;
+      height: 2px;
+      background-color: #38bdf8;
+      transition: left 0.3s ease;
+    }
+    .nav-link:hover::after {
+      left: 0;
     }
     .prediction-card {
-      transition: all 0.3s ease-in-out;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9));
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      font-family: 'Chakra Petch', sans-serif;
+      transition: all 0.3s ease;
     }
     .prediction-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 40px 0 rgba(56, 189, 248, 0.2);
+    }
+    .glow-text {
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+    }
+    .sticky-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(15px);
+      background-color: rgba(15, 23, 42, 0.9);
+      border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+      transition: all 0.3s ease;
+    }
+    .site-logo {
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 700;
+      font-size: 2rem;
+      background: linear-gradient(45deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
+    }
+    .nav-link {
+      position: relative;
+      font-family: 'Chakra Petch', sans-serif;
+      font-weight: 600;
+      color: #e2e8f0;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s ease;
+    }
+    .nav-link:hover {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: linear-gradient(45deg, #38bdf8, #818cf8);
+      transition: width 0.3s ease, left 0.3s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+      left: 0;
+    }
+    .mobile-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 999;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .mobile-menu.active {
+      max-height: 300px;
+      transition: max-height 0.3s ease-in;
+    }
+    .mobile-menu-link {
+      font-family: 'Chakra Petch', sans-serif;
+      color: #e2e8f0;
+      padding: 0.75rem 1rem;
+      display: block;
+      transition: all 0.3s ease;
+    }
+    .mobile-menu-link:hover {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+    }
+    .team-logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.5));
+      transition: transform 0.3s ease;
+    }
+    .team-logo:hover {
       transform: scale(1.05);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     }
-    .h2h-popup {
-      max-height: 80vh;
-      position: absolute; /* Ensure it's positioned absolutely */
-      z-index: 1000; /* Set a high z-index to float above other elements */
+    .vs-badge {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
     }
-    .h2h-popup-content {
-      max-height: 200px; /* Set a maximum height */
-      overflow-y: auto; /* Enable vertical scrolling */
+    .prediction-percentage {
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-shadow: 0 0 15px rgba(56, 189, 248, 0.5);
     }
-    .glow-effect {
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(0, 255, 255, 0.6);
+    .prediction-label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .ai-prediction {
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.05));
+      border-left: 4px solid #38bdf8;
+      backdrop-filter: blur(5px);
+    }
+    .stat-box {
+      background: rgba(30, 41, 59, 0.6);
+      border-radius: 12px;
+      padding: 1rem;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(56, 189, 248, 0.1);
+    }
+    .stat-box:hover {
+      background: rgba(56, 189, 248, 0.15);
+      transform: translateY(-3px);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .h2h-button {
+      background: linear-gradient(45deg, #38bdf8, #0ea5e9);
+      color: #0f172a;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+    }
+    .h2h-button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.4);
+    }
+    .league-header {
+      scroll-margin-top: 100px; /* Adjust this value as needed */
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+
+    .float-animation {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.2; }
+      50% { transform: scale(1.05); opacity: 0.3; }
+    }
+
+    .animate-pulse {
+      animation: pulse 4s ease-in-out infinite;
     }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
-<header class="relative overflow-hidden py-20" data-aos="fade-down" data-aos-duration="1000">
-  <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-90"></div>
-  <div class="container mx-auto px-4 relative z-10 text-center">
-    <h1 class="text-7xl md:text-9xl font-extrabold mb-6 text-white drop-shadow-2xl glow-effect" data-aos="zoom-in" data-aos-duration="1000">
-      FutureBet
-    </h1>
-    <p class="text-2xl md:text-4xl text-white font-medium mb-10 px-6 py-3 rounded-lg" data-aos="fade-up" data-aos-duration="1000">
-      Revolutionizing Football Predictions with AI
-    </p>
-  </div>
-  <div class="absolute inset-0 bg-[url('/images/soccer-pattern.png')] opacity-30 animate-pulse"></div>
-</header>
-
-  <nav class="bg-white shadow-lg py-4 sticky top-0 z-20 hidden md:block">
+<body class="min-h-screen flex flex-col bg-gray-900">
+  <nav class="sticky-nav py-4">
     <div class="container mx-auto px-4">
-      <div class="flex items-center justify-center md:justify-between space-x-8 overflow-x-auto pb-2" id="desktop-menu">
-        {leagues.map((league) => (
-          // @ts-ignore
-          <a href={`#${league.replace(/\s+/g, '-').toLowerCase()}`} class="nav-link text-gray-700 hover:text-teal-500 transition duration-300 font-medium">
-            {league}
-          </a>
-        ))}
+      <div class="flex justify-between items-center">
+        <a href="#" class="site-logo">FutureBet</a>
+        <div class="hidden md:flex space-x-4">
+          {leagues.map((league) => (
+            <a href={`#${league.replace(/\s+/g, '-').toLowerCase()}`} class="nav-link">
+              {league}
+            </a>
+          ))}
+        </div>
+        <button id="mobile-menu-btn" class="md:hidden text-sky-400 focus:outline-none">
+          <i class="fas fa-bars text-2xl"></i>
+        </button>
       </div>
     </div>
-  </nav>
-  
-  <nav class="bg-white shadow-lg py-4 sticky top-0 z-20 md:hidden">
-    <div class="container mx-auto px-4">
-      <button id="mobile-menu-btn" class="text-gray-700 hover:text-teal-500 transition duration-300 font-medium block md:hidden">
-        <i class="fas fa-bars"> Select League</i>
-      </button>
-      <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-white shadow-lg py-4">
-        {leagues.map((league) => (
-          // @ts-ignore
-          <a href={`#${league.replace(/\s+/g, '-').toLowerCase()}`} class="block nav-link text-gray-700 hover:text-teal-500 transition duration-300 font-medium px-4 py-2" 
-             onClick={() => {
-              // @ts-ignore
-               mobileMenu.classList.add('hidden'); // Close the mobile menu
-             }}>
-            {league}
-          </a>
-        ))}
-      </div>
+    <div id="mobile-menu" class="mobile-menu md:hidden">
+      {leagues.map((league) => (
+        <a href={`#${league.replace(/\s+/g, '-').toLowerCase()}`} class="mobile-menu-link">
+          {league}
+        </a>
+      ))}
     </div>
   </nav>
 
-  <main id="s" class="container mx-auto px-4 py-16 flex-grow" data-aos="fade-up" data-aos-duration="1000">
-    {leagues.map((league) => (
-      // @ts-ignore
-      <section class="mb-24" id={league.replace(/\s+/g, '-').toLowerCase()} data-league={league} data-aos="fade-up" data-aos-duration="1000">
-        <div class="flex items-center space-x-6 mb-10" data-aos="fade-right">
-          <img src={predictions.find(p => p.league_name === league).league_logo} class="w-24 h-24 rounded-full shadow-lg" />
-          <h2 class="text-4xl md:text-5xl font-bold text-gray-800">{league}</h2>
+  <main class="flex-grow">
+    <header class="bg-gray-900 py-16 relative overflow-hidden">
+      <div class="absolute inset-0 bg-[url('/circuit-board.svg')] opacity-10"></div>
+      <div class="container mx-auto px-4 relative z-10">
+        <div class="flex flex-col items-center text-center">
+          <h1 class="text-5xl md:text-6xl font-bold mb-6 orbitron text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500 glow-text" data-aos="zoom-in">
+            FutureBet
+          </h1>
+          <p class="text-xl md:text-2xl text-sky-300 max-w-2xl" data-aos="fade-up" data-aos-delay="200">
+            Revolutionizing Football Predictions with AI
+          </p>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {predictions
-            .filter((pred) => pred.league_name === league)
-            .map((pred, index) => (
-              <div class="bg-white rounded-xl overflow-hidden shadow-lg prediction-card relative p-4" data-aos="fade-up" data-aos-delay={index * 100}>
-                <div class="flex justify-between items-center mb-4">
-                  <div class="flex items-center space-x-3">
-                    <img src={pred.home_team_logo} alt={pred.home_team_name} class="w-10 h-10 rounded-full" />
-                    <span class="font-semibold text-sm">{pred.home_team_name}</span>
-                  </div>
-                  <div class="text-lg font-bold text-teal-500">VS</div>
-                  <div class="flex items-center space-x-3">
-                    <span class="font-semibold text-sm">{pred.away_team_name}</span>
-                    <img src={pred.away_team_logo} alt={pred.away_team_name} class="w-10 h-10 rounded-full" />
-                  </div>
-                </div>
+      </div>
+      <div class="absolute top-1/2 left-1/4 w-24 h-24 bg-sky-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+      <div class="absolute top-1/3 right-1/4 w-32 h-32 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse" style="animation-delay: 2s;"></div>
+    </header>
 
-                <div class="flex justify-around text-center bg-gradient-to-r from-teal-500 to-blue-600 rounded-lg py-3 shadow-md">
-                  <div>
-                    <div class="text-gray-200 text-xs uppercase font-semibold">Home</div>
-                    <div class="text-xl font-bold text-white">{pred.percent_home}</div>
+    <section id="predictions" class="container mx-auto px-4 py-20">
+      {leagues.map((league) => (
+        <div class="mb-32" id={league.replace(/\s+/g, '-').toLowerCase()} data-aos="fade-up">
+          <div class="league-header flex items-center space-x-6 mb-12" data-aos="fade-right">
+            <img src={predictions.find(p => p.league_name === league).league_logo} class="w-24 h-24 rounded-full shadow-lg" />
+            <h2 class="text-4xl md:text-5xl font-bold orbitron text-sky-400">{league}</h2>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {predictions
+              .filter((pred) => pred.league_name === league)
+              .map((pred, index) => (
+                <div class="prediction-card rounded-xl overflow-hidden p-8" data-aos="fade-up" data-aos-delay={index * 100}>
+                  <div class="flex justify-between items-center mb-10">
+                    <div class="flex flex-col items-center space-y-3">
+                      <img src={pred.home_team_logo} alt={pred.home_team_name} class="team-logo" />
+                      <span class="font-semibold text-sm text-sky-100 text-center">{pred.home_team_name}</span>
+                    </div>
+                    <div class="vs-badge">VS</div>
+                    <div class="flex flex-col items-center space-y-3">
+                      <img src={pred.away_team_logo} alt={pred.away_team_name} class="team-logo" />
+                      <span class="font-semibold text-sm text-sky-100 text-center">{pred.away_team_name}</span>
+                    </div>
                   </div>
-                  <div>
-                    <div class="text-gray-200 text-xs uppercase font-semibold">Draw</div>
-                    <div class="text-xl font-bold text-white">{pred.percent_draw}</div>
-                  </div>
-                  <div>
-                    <div class="text-gray-200 text-xs uppercase font-semibold">Away</div>
-                    <div class="text-xl font-bold text-white">{pred.percent_away}</div>
-                  </div>
-                </div>
 
-                <div class="bg-white rounded-xl shadow-lg p-6 mt-4">
-                  <h4 class="text-lg font-semibold text-gray-800">Prediction</h4>
-                  <p class="text-base font-medium text-gray-700 mt-2">
-                    {pred.advice.replace(/-/g, 'Under ').replace(/\+/g, 'Over ')}
-                  </p>
-                </div>
-                
-                {(pred.under_over || pred.home_goals || pred.away_goals) && (
-                  <div class="mt-4 text-center">
-                    <span class="text font-semibold text-gray-600">Goal Total Prediction</span>
-                    <div class="flex justify-center mt-1">
+                  <div class="grid grid-cols-3 gap-6 mb-10">
+                    <div class="text-center">
+                      <div class="prediction-percentage">{pred.percent_home}</div>
+                      <div class="prediction-label">Home</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="prediction-percentage">{pred.percent_draw}</div>
+                      <div class="prediction-label">Draw</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="prediction-percentage">{pred.percent_away}</div>
+                      <div class="prediction-label">Away</div>
                     </div>
                   </div>
-                )}
 
-                <div class="grid grid-cols-3 gap-3 text-center mt-4">
-                  {pred.under_over && (
-                    <div class="p-2 bg-gradient-to-r from-teal-500 to-blue-600 rounded-lg shadow-sm flex flex-col items-center">
-                      <i class="fas text-white mb-1"></i>
-                      <div class="text-xs uppercase text-teal-100">Match</div>
-                      <div class="text-sm font-bold text-white">
-                        {parseFloat(pred.under_over) < 0 ? `Under ${Math.abs(parseFloat(pred.under_over))}` : `Over ${parseFloat(pred.under_over)}`}
+                  <div class="ai-prediction rounded-lg p-5 mb-10">
+                    <h4 class="text-lg font-semibold text-sky-400 mb-3">Main Prediction</h4>
+                    <p class="text-base text-sky-100">
+                      {pred.advice.replace(/-/g, 'Under ').replace(/\+/g, 'Over ')}
+                    </p>
+                  </div>
+
+                  <h4 class="text-lg font-semibold text-sky-400 mb-3">Goals Prediction</h4>
+
+                  
+                  <div class="grid grid-cols-3 gap-4 mb-10">
+                    {pred.under_over && (
+                      <div class="stat-box text-center">
+                        <div class="prediction-label mb-1">Match</div>
+                        <div class="text-base font-bold text-sky-400">
+                          {parseFloat(pred.under_over) < 0 ? `U ${Math.abs(parseFloat(pred.under_over))}` : `O ${parseFloat(pred.under_over)}`}
+                        </div>
+                      </div>
+                    )}
+                    {pred.home_goals && (
+                      <div class="stat-box text-center">
+                        <div class="prediction-label mb-1">Home</div>
+                        <div class="text-base font-bold text-sky-400">
+                          {parseFloat(pred.home_goals) < 0 ? `U ${Math.abs(parseFloat(pred.home_goals))}` : `O ${parseFloat(pred.home_goals)}`}
+                        </div>
+                      </div>
+                    )}
+                    {pred.away_goals && (
+                      <div class="stat-box text-center">
+                        <div class="prediction-label mb-1">Away</div>
+                        <div class="text-base font-bold text-sky-400">
+                          {parseFloat(pred.away_goals) < 0 ? `U ${Math.abs(parseFloat(pred.away_goals))}` : `O ${parseFloat(pred.away_goals)}`}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <button class="w-full py-4 rounded-lg h2h-button text-sm">
+                    View H2H Stats
+                  </button>
+                  
+                  <div class="hidden mt-4 bg-gray-800 rounded-lg shadow-lg p-4 h2h-popup">
+                    <h3 class="text-lg font-bold text-sky-400 mb-4">Head-to-Head Stats</h3>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                      <div class="flex justify-between border-b border-gray-700 pb-2">
+                        <span class="text-gray-400">H2H Home:</span>
+                        <span class="font-semibold text-sky-400">{pred.h2h_home_percent}</span>
+                      </div>
+                      <div class="flex justify-between border-b border-gray-700 pb-2">
+                        <span class="text-gray-400">H2H Away:</span>
+                        <span class="font-semibold text-sky-400">{pred.h2h_away_percent}</span>
+                      </div>
+                      <div class="flex justify-between border-b border-gray-700 pb-2">
+                        <span class="text-gray-400">Goals Home:</span>
+                        <span class="font-semibold text-sky-400">{pred.goals_home_percent}</span>
+                      </div>
+                      <div class="flex justify-between border-b border-gray-700 pb-2">
+                        <span class="text-gray-400">Goals Away:</span>
+                        <span class="font-semibold text-sky-400">{pred.goals_away_percent}</span>
+                      </div>
+                      <div class="flex justify-between border-b border-gray-700 pb-2">
+                        <span class="text-gray-400">Total Home:</span>
+                        <span class="font-semibold text-sky-400">{pred.total_home_percent}</span>
+                      </div>
+                      <div class="flex justify-between border-b border-gray-700 pb-2">
+                        <span class="text-gray-400">Total Away:</span>
+                        <span class="font-semibold text-sky-400">{pred.total_away_percent}</span>
                       </div>
                     </div>
-                  )}
-                  {pred.home_goals && (
-                    <div class="p-2 bg-gradient-to-r from-teal-500 to-blue-600 rounded-lg shadow-sm flex flex-col items-center">
-                      <i class="fas text-white mb-1"></i>
-                      <div class="text-xs uppercase text-teal-100">Home</div>
-                      <div class="text-sm font-bold text-white">
-                        {parseFloat(pred.home_goals) < 0 ? `Under ${Math.abs(parseFloat(pred.home_goals))}` : `Over ${parseFloat(pred.home_goals)}`}
-                      </div>
-                    </div>
-                  )}
-                  {pred.away_goals && (
-                    <div class="p-2 bg-gradient-to-r from-teal-500 to-blue-600 rounded-lg shadow-sm flex flex-col items-center">
-                      <i class="fas text-white mb-1"></i>
-                      <div class="text-xs uppercase text-teal-100">Away</div>
-                      <div class="text-sm font-bold text-white">
-                        {parseFloat(pred.away_goals) < 0 ? `Under ${Math.abs(parseFloat(pred.away_goals))}` : `Over ${parseFloat(pred.away_goals)}`}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div class="mt-6">
-                  <div class="relative">
-                    <button class="w-full py-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 h2h-button" id="h2h-button">
-                      H2H Stats
-                    </button>
-                    <div class="absolute left-1/2 transform -translate-x-1/2 -top-64 mb-2 bg-white rounded-lg shadow-lg p-6 transition-all duration-300 opacity-0 pointer-events-none h2h-popup text-xs z-50 w-96 h2h-popup">
-                      <h3 class="text-lg font-bold text-gray-800 mb-4">Head-to-Head Stats</h3>
-                      <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="flex justify-between border-b border-gray-300 pb-2">
-                          <span class="text-gray-600">H2H Home:</span>
-                          <span class="font-semibold text-gray-800">{pred.h2h_home_percent}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-300 pb-2">
-                          <span class="text-gray-600">H2H Away:</span>
-                          <span class="font-semibold text-gray-800">{pred.h2h_away_percent}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-300 pb-2">
-                          <span class="text-gray-600">Goals Home:</span>
-                          <span class="font-semibold text-gray-800">{pred.goals_home_percent}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-300 pb-2">
-                          <span class="text-gray-600">Goals Away:</span>
-                          <span class="font-semibold text-gray-800">{pred.goals_away_percent}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-300 pb-2">
-                          <span class="text-gray-600">Total Home:</span>
-                          <span class="font-semibold text-gray-800">{pred.total_home_percent}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-300 pb-2">
-                          <span class="text-gray-600">Total Away:</span>
-                          <span class="font-semibold text-gray-800">{pred.total_away_percent}</span>
-                        </div>
-                      </div>
-                      <h4 class="text-sm font-semibold text-gray-800 mb-2">Recent Matches:</h4>
-                      <div class="h2h-popup-content">
-                        {(async () => {
-                          const h2hData = await getH2H(pred.fixture_id);
-                          return h2hData.map((h2h) => (
-                            <div class="flex justify-between items-center bg-gray-100 p-2 rounded-lg shadow-sm">
-                              <span class="text-gray-600">{h2h.h2h_date}</span>
-                              <span class="font-semibold text-gray-800">
-                                {h2h.h2h_home_team_name} 
-                                <span class="mx-1 text-yellow-500 font-bold">{h2h.h2h_home_goals}-{h2h.h2h_away_goals}</span> 
-                                {h2h.h2h_away_team_name}
-                              </span>
-                            </div>
-                          ));
-                        })()}
-                      </div>
+                    <h4 class="text-sm font-semibold text-sky-400 mb-2">Recent Matches:</h4>
+                    <div class="h2h-content">
+                      {(async () => {
+                        const h2hData = await getH2H(pred.fixture_id);
+                        return h2hData.map((h2h) => (
+                          <div class="flex justify-between items-center bg-gray-700 p-2 rounded-lg shadow-sm mb-2">
+                            <span class="text-gray-400">
+                              {new Date(h2h.h2h_date).toLocaleDateString('en-GB', {
+                                day: 'numeric',
+                                month: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                            <span class="font-semibold text-sky-400">
+                              {h2h.h2h_home_team_name} 
+                              <span class="mx-1 font-bold">{h2h.h2h_home_goals}-{h2h.h2h_away_goals}</span> 
+                              {h2h.h2h_away_team_name}
+                            </span>
+                          </div>
+                        ));
+                      })()}
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
-          }
+              ))
+            }
+          </div>
         </div>
-      </section>
-    ))}
+      ))}
+    </section>
   </main>
 
-  <footer class="bg-gray-800 text-white text-center py-8 mt-auto">
-    <p>&copy; 2024 FutureBet. All rights reserved.</p>
+  <footer class="bg-gray-800 text-white text-center py-10">
+    <p class="text-lg">&copy; 2024 FutureBet. All rights reserved.</p>
   </footer>
 
   <script>
-    // @ts-ignore
     import AOS from 'aos';
-    import { gsap } from 'gsap';
-    import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-    gsap.registerPlugin(ScrollTrigger);
-
+    
     document.addEventListener('DOMContentLoaded', () => {
       AOS.init({
         duration: 1000,
         once: true,
       });
 
-      document.querySelectorAll('#desktop-menu a, #mobile-menu a').forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      // @ts-ignore
-      const targetSection = document.querySelector(e.target.getAttribute('href'));
-      const sectionTop = targetSection.offsetTop;
-      window.scrollTo({
-        top: sectionTop - 80, // Adjust this value to control the scroll position
-        behavior: 'smooth'
-      });
-    });
-  });
-
-      gsap.utils.toArray('[data-league]').forEach((section) => {
-        // @ts-ignore
-        gsap.from(section.querySelector('h2'), {
-          x: -100,
-          opacity: 0,
-          duration: 1,
-          scrollTrigger: {
-            // @ts-ignore
-            trigger: section,
-            start: 'top 80%',
-            end: 'top 20%',
-            scrub: 1,
-          },
-        });
-      });
-
-      document.querySelectorAll('.h2h-button').forEach(button => {
-        const popup = button.nextElementSibling;
-
-        button.addEventListener('click', () => {
-          popup.classList.toggle('opacity-100');
-          popup.classList.toggle('pointer-events-auto');
-          popup.classList.toggle('opacity-0');
-          popup.classList.toggle('pointer-events-none');
-        });
-
-        document.addEventListener('click', (event) => {
-          // @ts-ignore
-          if (!button.contains(event.target) && !popup.contains(event.target)) {
-            popup.classList.add('opacity-0');
-            popup.classList.add('pointer-events-none');
-            popup.classList.remove('opacity-100');
-            popup.classList.remove('pointer-events-auto');
-          }
-        });
-      });
-
       const mobileMenuBtn = document.getElementById('mobile-menu-btn');
       const mobileMenu = document.getElementById('mobile-menu');
 
       mobileMenuBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
-        mobileMenu.classList.toggle('block'); // Ensure the menu is displayed
+        mobileMenu.classList.toggle('active');
       });
 
-      // Close mobile menu on link click
-      document.querySelectorAll('#mobile-menu a').forEach(link => {
+      // Close mobile menu when clicking outside
+      document.addEventListener('click', (event) => {
+        if (!mobileMenuBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
+          mobileMenu.classList.remove('active');
+        }
+      });
+
+      // Close mobile menu when a link is clicked
+      mobileMenu.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', () => {
-          mobileMenu.classList.add('hidden'); // Close the mobile menu
+          mobileMenu.classList.remove('active');
+        });
+      });
+
+      document.querySelectorAll('.h2h-button').forEach(button => {
+        button.addEventListener('click', () => {
+          const popup = button.nextElementSibling;
+          popup.classList.toggle('hidden');
         });
       });
 
       document.addEventListener('click', (event) => {
-        // @ts-ignore
-        if (!mobileMenuBtn.contains(event.target) && !mobileMenu.contains(event.target)) {
-          mobileMenu.classList.add('hidden');
-        }
+        const popups = document.querySelectorAll('.h2h-popup');
+        popups.forEach(popup => {
+          if (!popup.previousElementSibling.contains(event.target) && !popup.contains(event.target)) {
+            popup.classList.add('hidden');
+          }
+        });
+      });
+
+      // Smooth scroll to section with offset
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+
+          const targetId = this.getAttribute('href').slice(1);
+          const targetElement = document.getElementById(targetId);
+
+          if (targetElement) {
+            const navHeight = document.querySelector('.sticky-nav').offsetHeight;
+            const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = targetPosition - navHeight - 20; // Adjust the 20 as needed
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+          }
+        });
       });
     });
   </script>
