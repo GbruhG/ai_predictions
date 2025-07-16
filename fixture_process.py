@@ -152,7 +152,6 @@ def process_first_n_ids(ids, n=93, rate_limit=10):
         if index < len(first_n_ids) - 1:
             time.sleep(delay)
 
-# Replace '2023.json' with the path to your actual JSON file
 # file_path = '2023.json'
 # fixture_ids = extract_fixture_ids_from_file(file_path)
 # process_first_n_ids(fixture_ids)
